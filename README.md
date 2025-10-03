@@ -101,4 +101,4 @@ This command starts a local documentation server and automatically opens it. Onc
 
 Originally, the project was going to use context injection for state management, but that risked hiding important details in Context and encouraging scope creep.
 
-Instead, it now uses a custom HTTP handler that explicitly passes state between middleware. This introduces some boilerplate and doesn't prevent SharedState from becoming a God struct, but it feels more transparent and less "sneaky".
+Instead, it now uses a custom HTTP handler that explicitly passes state between middleware. This introduces some boilerplate and doesn't prevent RequestState from becoming a God struct, but it feels more transparent and less "sneaky".
