@@ -1,6 +1,6 @@
 # Basic Go HTTP Server
 
-This repository provides a minimal Go HTTP server with built-in logging and a simple ping/pong endpoint. It includes basic tests and can be used as a template for quickly starting new Go server projects without re-inventing the boilerplate.
+This repository provides a minimal Go HTTP server with built-in logging and a simple ping/pong endpoint. It includes basic tests and can be used as a template for quickly starting new Go server projects without re-creating the directory structure/setup every time.
 
 ## Layout
 
