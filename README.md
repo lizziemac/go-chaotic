@@ -51,27 +51,6 @@ time=2025-10-02T16:13:27.730-04:00 level=INFO msg="request received" method=GET 
 time=2025-10-02T16:13:27.730-04:00 level=INFO msg="request complete" method=GET path=/api/v1/ping duration=165.75µs
 ```
 
-### Unused Payload
-
-Send a POST request with a payload (payload is ignored):
-
-```sh
-curl -X POST localhost:8080/api/v1/ping --data '{"hello": "world"}'
-```
-
-**Expected Response:**
-
-```json
-{"message":"pong"}
-```
-
-**Expected Server Logs:**
-
-```
-time=2025-10-02T16:12:51.242-04:00 level=INFO msg="request received" method=POST path=/api/v1/ping body="{\"hello\": \"world\"}"
-time=2025-10-02T16:12:51.242-04:00 level=INFO msg="request complete" method=POST path=/api/v1/ping duration=50.208µs
-```
-
 ### Unhappy Path
 
 Request an invalid endpoint:
