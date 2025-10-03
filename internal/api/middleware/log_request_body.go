@@ -15,6 +15,7 @@ import (
 //
 // TODO: Move to internal/middleware (common) when truly specific API middleware is added. This is for demonstration.
 // TODO: Enforce a size limit for production.
+// TODO: Use a standard like OpenTelemetry for structured logging in production.
 func LogRequestBody(next middleware.StateHandler) middleware.StateHandler {
 	return func(w http.ResponseWriter, r *http.Request, st *middleware.RequestState) {
 		if r.Body != nil {

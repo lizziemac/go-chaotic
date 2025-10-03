@@ -10,8 +10,8 @@ import (
 
 func Setup() http.Handler {
 	// API Routes
-	apiMux := http.NewServeMux()                     // create a new mux for API routes (so we can apply API-specific middleware)
-	apiMux.HandleFunc("/api/v1/ping", handlers.Ping) // register API handler for /api/v1/ping
+	apiMux := http.NewServeMux()                         // create a new mux for API routes (so we can apply API-specific middleware)
+	apiMux.HandleFunc("GET /api/v1/ping", handlers.Ping) // register API handler for /api/v1/ping
 
 	// API Middleware
 	h := apimw.LogRequestBody(commonmw.Adapt(apiMux)) // adapt apiMux to StateHandler and wrap with LogRequestBody
