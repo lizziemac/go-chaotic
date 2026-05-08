@@ -6,6 +6,7 @@ import (
 	"os"
 )
 
+// The custom server logger
 var Logger *slog.Logger
 
 // Add custom log levels
