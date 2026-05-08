@@ -1,8 +1,8 @@
-# Structured Chaos Reverse Go Proxy Server
+# Structured Chaos Reverse Proxy Server
 
 This repository provides a minimal reverse proxy built in Go for injecting chaos (latency, dropped connections) into API requests. It acts as an intermediary layer to test system resilience, allowing you to dynamically configure chaos rules per user via HTTP headers.
 
-Inspired by @khizar-sudo's [chaos-proxy](https://github.com/khizar-sudo/chaos-proxy)
+Inspired by khizar-sudo's [chaos-proxy](https://github.com/khizar-sudo/chaos-proxy)
 
 ## Layout
 
