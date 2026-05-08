@@ -12,7 +12,8 @@ import (
 
 // mockStore is a simple mock implementation of services.ConfigStore
 type mockStore struct {
-	upsertOk bool
+	upsertOk  bool
+	getConfig *services.Config
 }
 
 func (m *mockStore) UpsertConfig(userID string, config services.Config) (*services.Config, bool) {
@@ -23,6 +24,9 @@ func (m *mockStore) UpsertConfig(userID string, config services.Config) (*servic
 }
 
 func (m *mockStore) GetConfig(userID string) (*services.Config, bool) {
+	if m.getConfig != nil {
+		return m.getConfig, true
+	}
 	return nil, false
 }
 
@@ -37,7 +41,7 @@ func TestUpsertConfig(t *testing.T) {
 		{
 			name:           "successful upsert",
 			userID:         "user-1",
-			body:           `{"mode": 2, "latency_delay": 5000000000}`,
+			body:           `{"mode": 2, "latency_delay_ns": 5000000000}`,
 			mockUpsertOk:   true,
 			expectedStatus: http.StatusOK,
 		},
@@ -91,5 +95,26 @@ func TestUpsertConfig(t *testing.T) {
 				}
 			}
 		})
+	}
+}
+
+func TestUpsertConfigDoesNotAcceptPOST(t *testing.T) {
+	store := &mockStore{upsertOk: true}
+
+	mux := http.NewServeMux()
+	mux.HandleFunc("PUT /proxy/api/v1/config", UpsertConfig(store))
+
+	req := httptest.NewRequest(http.MethodPost, "/proxy/api/v1/config", bytes.NewBuffer([]byte(`{}`)))
+	req.Header.Set("Content-Type", "application/json")
+	w := httptest.NewRecorder()
+
+	mux.ServeHTTP(w, req)
+
+	if w.Code != http.StatusMethodNotAllowed {
+		t.Fatalf("expected %d, got %d", http.StatusMethodNotAllowed, w.Code)
+	}
+	expected := http.StatusText(http.StatusMethodNotAllowed)
+	if !bytes.Contains(w.Body.Bytes(), []byte(expected)) {
+		t.Errorf("expected %q response, got %q", expected, w.Body.String())
 	}
 }

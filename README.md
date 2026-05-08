@@ -1,6 +1,6 @@
-# Basic Go HTTP Server
+# Structured Chaos Reverse Go Proxy Server
 
-This repository provides a minimal Go HTTP server with built-in logging and a simple ping/pong endpoint. It includes basic tests and can be used as a template for quickly starting new Go server projects without re-creating the directory structure/setup every time.
+This repository provides a minimal reverse proxy built in Go for injecting chaos (latency, dropped connections) into API requests. It acts as an intermediary layer to test system resilience, allowing you to dynamically configure chaos rules per user via HTTP headers.
 
 ## Layout
 
@@ -22,53 +22,93 @@ This repository provides a minimal Go HTTP server with built-in logging and a si
 
 ## Running the Server
 
-Start the server:
+⚠️ Before starting the proxy server, you need a backend server running for it to forward requests to.
+
+Set the `TARGET_URL` environment variable to point to your backend (e.g., a local Go server):
 
 ```sh
+export TARGET_URL="http://127.0.0.1:8080"
 go run cmd/api/main.go
 ```
 
-## Example Requests
+## How to Use
 
-### Happy Path
+### 💨 Passthrough
 
-Send a GET request to the ping endpoint:
+Send a GET request to the ping endpoint of your backend, but using the address of the proxy server.
 
 ```sh
-curl localhost:8080/api/v1/ping
+curl localhost:8081/api/v1/ping
 ```
 
 **Expected Response:**
+You should get a normal response back, as if you sent the request directly to your backend.
 
 ```json
 {"message":"pong"}
 ```
 
-**Expected Server Logs:**
+### 🚶🏻‍♀️Passthrough with User
 
-```
-time=2025-10-02T16:13:27.730-04:00 level=INFO msg="request received" method=GET path=/api/v1/ping body=""
-time=2025-10-02T16:13:27.730-04:00 level=INFO msg="request complete" method=GET path=/api/v1/ping duration=165.75µs
-```
-
-### Unhappy Path
-
-Request an invalid endpoint:
+Send a GET request to the ping endpoint of your backend, but using the address of the proxy server.
 
 ```sh
-curl localhost:8080/bad
+curl -H 'X-User-ID: lizziemac' localhost:8081/api/v1/ping
 ```
 
 **Expected Response:**
+You should get a normal response back, as if you sent the request directly to your backend, IF no configurations are set for your user. If you have latency mode set, all responses will be delayed by the specified duration. If you have drop mode set, responses will be dropped with the specified rate. See [Setting Proxy Configs](#setting-proxy-configs) for more details.
 
 ```json
-{"error":"not found"}
+{"message":"pong"}
 ```
 
-**Expected Server Log:**
+### Setting Proxy Configs
 
+* `mode` (integer): A bitmapped value that determines what chaos to apply. (Note: Because this is a bitmap, a mode of 3 applies both Drop and Delay rules).
+    * 0 (PassMsg): Do nothing; pass the message normally.
+    * 1 (DropMsg): Drop incoming messages based on the drop_rate.
+    * 2 (DelayMsg): Delay messages by the latency_delay.
+
+* `drop_rate` (float, optional): The percentage rate at which messages are dropped (used if mode includes DropMsg). For example, 0.9 drops 90% of the requests.
+
+* `latency_delay_ns` (integer, optional): The amount of time to delay a message in nanoseconds (used if mode includes DelayMsg). For example, 5000000000 equals 5 seconds.
+
+You can dynamically configure rules for specific users by providing an `X-User-ID` header. For example, to inject a 5-second latency delay with a 50% drop rate (mode: 3 represents DelayMsg & DropMsg), and the delay is in nanoseconds:
+
+```sh
+curl -X PUT http://localhost:8081/proxy/api/v1/config \
+    -H "X-User-ID: test-user" \
+    -H "Content-Type: application/json" \
+    -d '{"mode": 3, "drop_rate": 0.5, "latency_delay_ns": 5000000000}'
 ```
-[WARN] GET /bad 404
+
+**Expected Response:**
+```json
+{
+    "mode": 3,
+    "drop_rate": 0.5,
+    "latency_delay_ns": 5000000000,
+    "ttl": "2026-06-07T16:35:06.22257-04:00"
+}
+```
+
+### Getting Proxy Configs
+To retrieve the current chaos configuration for a specific user, use a GET request:
+
+```sh
+curl -X GET http://localhost:8081/proxy/api/v1/config \
+    -H "X-User-ID: test-user" 
+```
+
+**Expected Response:**
+```json
+{
+    "mode": 1,
+    "drop_rate": 0.5,
+    "latency_delay_ns": null,
+    "ttl": "2026-06-07T16:39:38.139464-04:00"
+}
 ```
 
 ## Running Tests
@@ -97,8 +137,6 @@ This command starts a local documentation server and automatically opens it. Onc
 
 ## Design Considerations
 
-### State Management in Middleware
+### User-Based Configurations using Global Memory
 
-Originally, the project was going to use context injection for state management, but that risked hiding important details in Context and encouraging scope creep.
-
-Instead, it now uses a custom HTTP handler that explicitly passes state between middleware. This introduces some boilerplate and doesn't prevent RequestState from becoming a God struct, but it feels more transparent and less "sneaky".
+This project uses dependency injection to pass around a global store of configurations. This store is intentionally generic so that the in-memory solution can be replaced with a Redis cache or something else as desired with relative ease. As is, it's plug and play 😊

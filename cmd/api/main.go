@@ -24,7 +24,13 @@ func main() {
 	mux := http.NewServeMux()
 
 	// Create a router for reverse-proxy specific APIs
-	mux.Handle("PUT /proxy/api/v1/config", handlers.UpsertConfig(config))
+	mux.HandleFunc("PUT /proxy/api/v1/config", handlers.UpsertConfig(config))
+	mux.HandleFunc("GET /proxy/api/v1/config", handlers.GetConfig(config))
+
+	// Catch-all for /proxy/api/v1/config to prevent fall-through to the proxy
+	mux.HandleFunc("/proxy/api/v1/config", func(w http.ResponseWriter, r *http.Request) {
+		http.Error(w, http.StatusText(http.StatusMethodNotAllowed), http.StatusMethodNotAllowed)
+	})
 
 	// Set up the reverse proxy
 	proxy := reverseproxy.Setup(ctx, config)

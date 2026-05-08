@@ -20,10 +20,10 @@ const MAX_TTL = TTL_DAYS * (24 * time.Hour)
 
 // Holds the current proxy rules
 type Config struct {
-	Mode         MessageMode    `json:"mode"`          // What chaos will be applied to this message
-	DropRate     *float32       `json:"drop_rate"`     // If message mode is 'drop', the percentage rate at which messages are dropped
-	LatencyDelay *time.Duration `json:"latency_delay"` // If message mode is 'delay', the amount of time it takes for each message to be forwarded
-	TTL          time.Time      `json:"ttl"`           // When to clear the user key, if it hasn't been updated in a while
+	Mode         MessageMode    `json:"mode"`             // What chaos will be applied to this message
+	DropRate     *float32       `json:"drop_rate"`        // If message mode is 'drop', the percentage rate at which messages are dropped
+	LatencyDelay *time.Duration `json:"latency_delay_ns"` // If message mode is 'delay', the amount of time it takes for each message to be forwarded
+	TTL          time.Time      `json:"ttl"`              // When to clear the user key, if it hasn't been updated in a while
 }
 
 // ConfigStore defines the contract for fetching and updating configurations.
