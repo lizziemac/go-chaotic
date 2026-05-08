@@ -7,9 +7,9 @@ import (
 	"os/signal"
 	"time"
 
+	"example.com/myapp/internal/api/handlers"
 	"example.com/myapp/internal/logger"
 	"example.com/myapp/internal/middleware"
-	commonmw "example.com/myapp/internal/middleware"
 	reverseproxy "example.com/myapp/internal/proxy"
 	"example.com/myapp/internal/services"
 )
@@ -21,17 +21,22 @@ func main() {
 
 	var config services.ConfigStore = services.NewConfigRegistry(ctx)
 
-	proxy := reverseproxy.Setup(ctx, config) // set up the reverse proxy
+	mux := http.NewServeMux()
 
-	proxyStateHandler := func(w http.ResponseWriter, r *http.Request, st *middleware.RequestState) {
-		proxy.ServeHTTP(w, r)
-	}
+	// Create a router for reverse-proxy specific APIs
+	mux.Handle("PUT /proxy/api/v1/config", handlers.UpsertConfig(config))
 
-	h := commonmw.LogRequestBody(proxyStateHandler)
-	h = commonmw.RequestTimer(h)
-	// add more middleware here
-	// e.g. `h = middleware.X(h)`
+	// Set up the reverse proxy
+	proxy := reverseproxy.Setup(ctx, config)
+	mux.Handle("/", proxy) // route everything else via the reverse proxy
 
+	// Setup the middleware to apply to all routes
+	h := middleware.Adapt(mux)
+	h = middleware.LogRequestBody(h)
+	h = middleware.RequestTimer(h)
+	// ...
+
+	// Finalize middleware by applying a state context
 	finalHandler := middleware.WithState(h)
 
 	srv := &http.Server{

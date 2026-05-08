@@ -52,7 +52,7 @@ func (r *ConfigRegistry) cleanup() {
 }
 
 // Update the configuration for a specific user
-func (r *ConfigRegistry) UpsertConfig(userID string, config Config) {
+func (r *ConfigRegistry) UpsertConfig(userID string, config Config) (*Config, bool) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 	if r.configs == nil {
@@ -60,6 +60,7 @@ func (r *ConfigRegistry) UpsertConfig(userID string, config Config) {
 	}
 	config.TTL = time.Now().Add(MAX_TTL)
 	r.configs[userID] = config
+	return &config, true
 }
 
 // Get the current configuration for a user

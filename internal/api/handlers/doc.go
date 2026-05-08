@@ -7,11 +7,4 @@
 //
 // Each handler should be small and focused, delegating heavy logic
 // to internal/services. Handlers map directly to API endpoints.
-//
-// Example:
-//
-//	func Ping(w http.ResponseWriter, r *http.Request) {
-//	    w.WriteHeader(http.StatusOK)
-//	    w.Write([]byte(services.Pong()))
-//	}
 package handlers
