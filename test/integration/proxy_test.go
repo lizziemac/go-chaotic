@@ -2,12 +2,14 @@ package integration
 
 import (
 	"bytes"
+	"context"
 	"net/http"
 	"net/http/httptest"
 	"os"
 	"testing"
 
-	"example.com/myapp/internal/reverseproxy"
+	reverseproxy "example.com/myapp/internal/proxy"
+	"example.com/myapp/internal/services"
 )
 
 func TestProxyForwardsRequest(t *testing.T) {
@@ -24,8 +26,10 @@ func TestProxyForwardsRequest(t *testing.T) {
 	os.Setenv("TARGET_URL", backend.URL)
 	defer os.Unsetenv("TARGET_URL")
 
+	ctx := context.Background()
+	configStore := services.NewConfigRegistry(ctx)
 	// Set up the reverse proxy
-	proxy := reverseproxy.Setup()
+	proxy := reverseproxy.Setup(ctx, configStore)
 
 	// Create a test request hitting the proxy
 	req := httptest.NewRequest(http.MethodGet, "/test-path", nil)
