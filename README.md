@@ -141,4 +141,7 @@ This command starts a local documentation server and automatically opens it. Onc
 
 ### User-Based Configurations using Global Memory
 
-This project uses dependency injection to pass around a global store of configurations. This store is intentionally generic so that the in-memory solution can be replaced with a Redis cache or something else as desired with relative ease. As is, it's plug and play 😊
+This project uses dependency injection to pass around a global store of configurations. This store is intentionally generic so that the in-memory solution can be replaced with a Redis cache or something else as desired with relative ease.
+
+### Making this a Template Project
+This project in its current state can be helpful for sandboxing. However, if you wanted to use it formally in a dev environment, you may have a different way you want to separate configs (e.g. a different header/unique identifier), add specific behaviors, etc. Or you may want to use Redis or something instead of the server's heap. Either way, this was a fun learning project for me, and I hope you benefit from using it!
